@@ -1,23 +1,24 @@
 # encoding: utf-8
 #
-# Copyright (c) 2016 Rob Walton <dhttps://github.com/robwalton>
+# Copyright (c) 2016 Rob Walton <https://github.com/robwalton>
 #
 # MIT Licence. See http://opensource.org/licenses/MIT
 #
 # Created on 2017-04-17
-import json
 
 
 """
-A Python x-callback-url client using xcall.
+A Python x-callback-url client used to communicate with an application's
+x-callback-url scheme registered with macOS.
 
-`xcall` is command line macOS application providing generic access to
-applications with x-callback-url schemes:
+Uses `xcall`. `xcall` is command line macOS application providing generic
+access to applications with x-callback-url schemes:
 
    https://github.com/martinfinke/xcall
 
 """
 
+import json
 import urllib
 import logging
 import os
@@ -43,6 +44,13 @@ class XCallbackError(Exception):
 
 
 def default_xerror_handler(stderr, requested_url):
+    """Handle an x-error callback by raising a generic XCallbackError
+
+    stderr -- utf-8 un-encoded and then url unquoted x-error reply
+    requested_url -- the encoded url sent to application
+
+    (Note: this doc forms part of XCallClient API)
+    """
     msg = "x-error callback: '%s'" % stderr
     if requested_url:
         msg += " (in response to url: '%s')" % requested_url
@@ -50,26 +58,58 @@ def default_xerror_handler(stderr, requested_url):
 
 
 def xcall(scheme, action, action_parameters={},
-          activate_application=False):
+          activate_app=False):
+    """Perform action and return un-marshalled result.
+
+    scheme -- scheme name of application to target
+    action -- the name of the application action to perform
+    action_parameters -- dictionary of parameters to pass with call. None
+                         entries will be removed before sending. Values
+                         will be utf-8 encoded and then url quoted.
+    activate_app -- bring target application to foreground if True
+
+    An x-success reply will be utf-8 un-encoded, then url unquoted,
+    and then  unmarshalled using json into python objects before being
+    returned.
+
+    An x-error reply will result in an XCallbackError being raised.
+    """
     client = XCallClient(scheme)
-    return client.xcall(action, action_parameters, activate_application)
+    return client.xcall(action, action_parameters, activate_app)
 
 
 class XCallClient(object):
+    """A client used for communicating with a particular application.
+    """
 
     def __init__(self, scheme_name, on_xerror_handler=default_xerror_handler,
                  json_decode_success=True):
+        """Create an xcall client for a particular application.
+
+        scheme_name -- the url scheme name, as registered with macOS
+        on_xerror_handler -- callable to handle x-error callbacks.
+                             See xcall.default_xerror_handler
+        json_decode_success -- unmarshal x-success calls if True
+        """
         self.scheme_name = scheme_name
         self.on_xerror_handler = on_xerror_handler
         self.json_decode_success = json_decode_success
 
-    def xcall(self, action, action_parameters={}, activate_application=False):
+    def xcall(self, action, action_parameters={}, activate_app=False):
         """Perform action and return result across xcall.
 
         action -- the name of the application action to perform
         action_parameters -- dictionary of parameters to pass with call. None
                              entries will be removed before sending. Values
                              will be utf-8 encoded and then url quoted.
+        activate_app -- bring target application to foreground if True
+
+        An x-success reply will be utf-8 un-encoded, then url unquoted,
+        and then (if configured)  unmarshalled using json into python objects
+        before being returned.
+
+        An x-error reply will result in a call to the configured
+        on_xerror_handler.
         """
 
         for key in list(action_parameters):
@@ -78,21 +118,14 @@ class XCallClient(object):
 
         cmdurl = self._build_url(action, action_parameters)
         logger.debug('--> ' + cmdurl)
-        if not activate_application:
-            result = self._xcall(cmdurl)
-        else:
-            result = self._call_outside_xcall(cmdurl)
+        result = self._xcall(cmdurl, activate_app)
         logger.debug('<-- ' + unicode(result) + '\n')
+
         return result
 
     __call__ = xcall
 
     def _build_url(self, action, action_parameter_dict):
-        """Build url to send to Application.
-
-        action -- action name
-        action_parameter_dict -- parameters for given action
-        """
         url = '%s://x-callback-url/%s' % (self.scheme_name, action)
 
         if action_parameter_dict:
@@ -103,18 +136,13 @@ class XCallClient(object):
             url = url + '?' + '&'.join(par_list)
         return url
 
-    def _xcall(self, url):
-        """Send a URL to application via xcall and return result as dictionary.
+    def _xcall(self, url, activate_app):
+        args = [XCALL_PATH, '-url', '"%s"' % url]
+        if activate_app:
+            args += ['-activateApp', 'YES']
 
-        xcall will call app in a way that it will stay in the background.
-
-        url -- un-encoded URL to send. Will be encoded before sending.
-
-        May raise XCallbackError with error message and code from app.
-        """
-
-        p = subprocess.Popen([XCALL_PATH, '-url', url],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
 
         assert (stdout == '') or (stderr == '')

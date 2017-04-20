@@ -98,7 +98,19 @@ def test_xcall__no_parameters(monkeypatch):
 
     popen_args = mock_Popen.call_args[0][0]
     assert popen_args == [xcall.XCALL_PATH, '-url',
-                          'scheme://x-callback-url/action']
+                          '"scheme://x-callback-url/action"']
+
+
+def test_xcall__no_parameters_with_activation(monkeypatch):
+    mock_Popen = create_mock_Popen('"ignored success response"', '')
+    monkeypatch.setattr(subprocess, 'Popen', mock_Popen)
+
+    xcall.xcall('scheme', 'action', activate_app=True)
+
+    popen_args = mock_Popen.call_args[0][0]
+    assert popen_args == [xcall.XCALL_PATH, '-url',
+                          '"scheme://x-callback-url/action"',
+                          '-activateApp', 'YES']
 
 
 def test_xcall__with_parameters(monkeypatch):
@@ -109,8 +121,9 @@ def test_xcall__with_parameters(monkeypatch):
     xcall.xcall('scheme', 'action', action_parameters)
 
     popen_args = mock_Popen.call_args[0][0]
-    assert popen_args == [xcall.XCALL_PATH, '-url',
-                          'scheme://x-callback-url/action?key1=val1&key2=val2']
+    assert popen_args == [
+        xcall.XCALL_PATH, '-url',
+        '"scheme://x-callback-url/action?key1=val1&key2=val2"']
 
 
 def test_xcall__with_unicode_and_unsafe_html_parameters(monkeypatch):
@@ -123,7 +136,7 @@ def test_xcall__with_unicode_and_unsafe_html_parameters(monkeypatch):
     encoded_test_string = urllib.quote(TEST_STRING.encode('utf8'))
     assert popen_args == [
         xcall.XCALL_PATH, '-url',
-        u'scheme://x-callback-url/action?key1=%s' % encoded_test_string]
+        u'"scheme://x-callback-url/action?key1=%s"' % encoded_test_string]
 
 
 def test_xcall__success(monkeypatch):

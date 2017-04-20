@@ -26,7 +26,7 @@ Call a scheme (ulysses) with an action (get-version):
 >>> xcall.xcall('ulysses', 'get-version')
 {u'apiVersion': u'2', u'buildNumber': u'33542'}
 ```
-An x-success reply will be utf-8 un-encoded, then url unquoted then be unmarshalled using json into python objects being returned.
+An x-success reply will be utf-8 un-encoded, then url unquoted, and then  unmarshalled using json into python objects before being returned.
 
 A dictionary of key-value pairs can also be provided (each value is utf-8
 encoded and then url quoted before sending):
@@ -39,7 +39,7 @@ If the application calls back with an x-error, an exception will be raised:
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 ...
-xcall.XCallbackError: x-error callback: '{
+XCallbackError: x-error callback: '{
   "errorMessage" : "Invalid Action",
   "errorCode" : "100"
 }
@@ -75,7 +75,7 @@ or just:
 The code and the documentation are released under the MIT and Creative Commons
 Attribution-NonCommercial licences respectively.
 
-Thanks to
+Thanks to:
 - [Martin Finke](https://github.com/martinfinke) for his handy [xcall](https://github.com/martinfinke/xcall) application.
 - [Dean Jackson](https://github.com/deanishe) for suggestions
 
