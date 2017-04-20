@@ -24,7 +24,7 @@ import os
 import subprocess
 
 
-__all__ = ['XCall', 'xcall']
+__all__ = ['XCallClient', 'xcall', 'XCallbackError']
 
 XCALL_PATH = (os.path.dirname(os.path.abspath(__file__)) +
               '/lib/xcall.app/Contents/MacOS/xcall')
@@ -52,7 +52,7 @@ def default_xerror_handler(stderr, requested_url):
 def xcall(scheme, action, action_parameters={},
           activate_application=False):
     client = XCallClient(scheme)
-    return client.call(action, action_parameters, activate_application)
+    return client.xcall(action, action_parameters, activate_application)
 
 
 class XCallClient(object):
@@ -63,7 +63,7 @@ class XCallClient(object):
         self.on_xerror_handler = on_xerror_handler
         self.json_decode_success = json_decode_success
 
-    def call(self, action, action_parameters={}, activate_application=False):
+    def xcall(self, action, action_parameters={}, activate_application=False):
         """Perform action and return result across xcall.
 
         action -- the name of the application action to perform
@@ -85,7 +85,7 @@ class XCallClient(object):
         logger.debug('<-- ' + unicode(result) + '\n')
         return result
 
-    __call__ = call
+    __call__ = xcall
 
     def _build_url(self, action, action_parameter_dict):
         """Build url to send to Application.
