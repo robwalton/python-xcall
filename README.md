@@ -24,10 +24,9 @@ Call a scheme (ulysses) with an action (get-version):
 ```python
 >>> import xcall
 >>> xcall.xcall('ulysses', 'get-version')
-u'{\n  "buildNumber" : "33542",\n  "apiVersion" : "2"\n}\n'
+{u'apiVersion': u'2', u'buildNumber': u'33542'}
 ```
-An x-success reply will be utf-8 un-encoded and then url unquoted before being returned.
-It will _not_ be turned decoded further into python objects.
+An x-success reply will be utf-8 un-encoded, then url unquoted then be unmarshalled using json into python objects being returned.
 
 A dictionary of key-value pairs can also be provided (each value is utf-8
 encoded and then url quoted before sending):
@@ -36,7 +35,7 @@ encoded and then url quoted before sending):
 ```
 If the application calls back with an x-error, an exception will be raised:
 ```python
->>> xcall.xcall('ulysses', 'invalid-action')
+>>> xcall.xcall('ulysses', 'an-invalid-action')
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 ...
@@ -44,7 +43,31 @@ xcall.XCallbackError: x-error callback: '{
   "errorMessage" : "Invalid Action",
   "errorCode" : "100"
 }
-' (in response to url: 'ulysses://x-callback-url/invalid-action')
+' (in response to url: 'ulysses://x-callback-url/an-invalid-action')
+```
+
+## More control
+For more control create an instance of `xcall.XCallClient`, specifiying the scheme to use, wether responses should be unmarshalled using json, and an x-error handler. For example:
+```python
+def ulysses_xerror_handler(stderr, requested_url):
+    d = eval(stderr)
+    raise XCallbackError(
+        d['errorMessage'] + ' Code = ' + d['errorCode'] +
+        ". In response to sending the url '%s'." % requested_url)
+
+
+ulysses_client = XCallClient('ulysses',
+                             on_xerror_handler=ulysses_xerror_handler,
+                             json_decode_success=True)
+
+```
+Make calls with:
+```python
+>>> ulysses_client.xcall('get-version')
+```
+or just:
+```python
+>>> ulysses_client('get-version')
 ```
 
 ## Licensing & thanks
