@@ -43,15 +43,15 @@ class XCallbackError(Exception):
         Exception.__init__(self, *args, **kwargs)
 
 
-def default_xerror_handler(stderr, requested_url):
+def default_xerror_handler(xerror, requested_url):
     """Handle an x-error callback by raising a generic XCallbackError
 
-    stderr -- utf-8 un-encoded and then url unquoted x-error reply
+    xerror -- utf-8 un-encoded and then url unquoted x-error reply
     requested_url -- the encoded url sent to application
 
     (Note: this doc forms part of XCallClient API)
     """
-    msg = "x-error callback: '%s'" % stderr
+    msg = "x-error callback: '%s'" % xerror
     if requested_url:
         msg += " (in response to url: '%s')" % requested_url
     raise XCallbackError(msg)
