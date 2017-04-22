@@ -15,6 +15,11 @@ Uses `xcall`. `xcall` is command line macOS application providing generic
 access to applications with x-callback-url schemes:
 
    https://github.com/martinfinke/xcall
+   
+Call to this module are _probably_ not thread/process safe. An ettempt is made
+to ensure that `xcall` is not running, but there is 20-30ms window in which
+multiple calls to this module will result in multiple xcall processes running;
+and the chance of replies being mixed up.
 
 """
 
@@ -116,6 +121,9 @@ class XCallClient(object):
             if action_parameters[key] is None:
                 del action_parameters[key]
 
+        pid_list = get_pid_of_running_xcall_processes()
+        if pid_list:
+            raise AssertionError('xcall processe(s) already running. pid(s): ' + str(pid_list))
         cmdurl = self._build_url(action, action_parameters)
         logger.debug('--> ' + cmdurl)
         result = self._xcall(cmdurl, activate_app)
@@ -155,3 +163,15 @@ class XCallClient(object):
                 return response
         elif stderr:
             self.on_xerror_handler(stderr, url)
+
+ 
+
+def get_pid_of_running_xcall_processes():
+    try:
+        reply = subprocess.check_output(['pgrep', 'xcall'])
+    except subprocess.CalledProcessError:
+        return []
+    pid_list = reply.strip().split('\n')
+    if '' in pid_list:
+        pid_list.remove('')
+    return pid_list

@@ -74,6 +74,12 @@ or just:
 >>> ulysses_client('get-version')
 ```
 
+## On thread/process safety
+Call to this module are __probably__ not thread/process safe. An attempt is made
+to ensure that `xcall` is not already running, but there is 20-30ms window in which
+multiple calls to this module will result in multiple xcall processes running
+and the chance of replies being mixed up.
+
 ## Testing
 Running the tests requires the `pytest` and `mock` packages. Some optional integration
 tests currently require [Ulysses](https://ulyssesapp.com). Code your 
