@@ -21,8 +21,6 @@ import urllib
 import json
 from threading import Thread
 
-ACCESS_TOKEN = '8038e1f01b3742f8af957ff23d70d4bc'  # must be manually set
-
 
 TEST_STRING = ur""" -- () ? & ' " ‘quoted text’ _x_y_z_ a://b.c/d?e=f&g=h"""
 
@@ -32,7 +30,7 @@ ENCODED_TEST_STRING = (
 
 
 def ulysses_installed():
-    return not subprocess.call('open -Ra "Ulysses"', shell=True)
+    return not subprocess.call('open -Ra "UlyssesMac"', shell=True)
 
 
 def create_mock_Popen(x_success='', x_error=''):
@@ -174,11 +172,13 @@ def test_get_pid_of_running_xcall_processes():
     # There is 20-30ms delay before xcall is started (hence the sleep)
     # The solid way to prevent more than one running at once would be with
     # a persistent lock on disk.
+
+    #
     for _ in range(10):
         assert len(xcall.get_pid_of_running_xcall_processes()) == 0
         t = Thread(target=xcall.xcall, args=('ulysses', 'get-version'))
         t.start()
-        time.sleep(.03)
+        time.sleep(.05)  #
         assert len(xcall.get_pid_of_running_xcall_processes()) == 1
         with pytest.raises(AssertionError):
             xcall.xcall('ulysses', 'get-version')
