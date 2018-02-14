@@ -1,7 +1,7 @@
 # python-xcall
 
-A Python [x-callback-url](http://x-callback-url.com) client for 
-communicating with x-callback-url enabled macOS applications. python-xcall uses the handy
+A Python [x-callback-url](http://x-callback-url.com) client for bi-directional
+communication with x-callback-url enabled macOS applications. python-xcall supports callbacks from appplications. It wraps the handy
 [xcall](https://github.com/martinfinke/xcall) command line tool.
 
 It is used by:
