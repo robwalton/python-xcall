@@ -149,17 +149,23 @@ class XCallClient(object):
         if activate_app:
             args += ['-activateApp', 'YES']
 
+        logger.debug('XCALL_PATH: "%s"' % XCALL_PATH)
+
+
         p = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
-
+        stdout, stderr = 'x', 'x'
         # Assert that reply had output on one, and only one of stdout and stderr
         if (stdout != '') and (stderr != ''):
             raise AssertionError(
                 'xcall utility replied unexpectedly on *both* stdout and stderr.'
-                '\nstdout: "%s"\nstderr: "%s"' % (stdout, stderr))
+                '\nstdout: "%s"\nstderr: "%s"\n'
+                'Try xcall directly from terminal with: "%s" ' % (stdout, stderr, ' '.join(args)))
         if (stdout == '') and (stderr == ''):
-            raise AssertionError('xcall utility unexpectedly replied on *neither* stdout nor stderr')
+            raise AssertionError(
+                'xcall utility unexpectedly replied on *neither* stdout nor stderr'
+                'Try xcall directly from terminal with: "%s"' % ' '.join(args))
 
         if stdout:
             response = urllib.unquote(stdout).decode('utf8')
