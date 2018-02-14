@@ -153,8 +153,14 @@ class XCallClient(object):
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
 
-        assert (stdout == '') or (stderr == '')
-        assert not ((stdout == '') and (stderr == ''))
+        # Assert that reply had output on one, and only one of stdout and stderr
+        if (stdout != '') and (stderr != ''):
+            raise AssertionError(
+                'xcall utility replied unexpectedly on *both* stdout and stderr.'
+                '\nstdout: "%s"\nstderr: "%s"' % (stdout, stderr))
+        if (stdout == '') and (stderr == ''):
+            raise AssertionError('xcall utility unexpectedly replied on *neither* stdout nor stderr')
+
         if stdout:
             response = urllib.unquote(stdout).decode('utf8')
             if self.json_decode_success:
