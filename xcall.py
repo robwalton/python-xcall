@@ -155,7 +155,7 @@ class XCallClient(object):
         p = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
-        stdout, stderr = 'x', 'x'
+
         # Assert that reply had output on one, and only one of stdout and stderr
         if (stdout != '') and (stderr != ''):
             raise AssertionError(
