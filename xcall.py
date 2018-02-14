@@ -37,8 +37,11 @@ XCALL_PATH = (os.path.dirname(os.path.abspath(__file__)) +
 
 
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
-                    level=logging.DEBUG)
+                    level=logging.WARNING)
 logger = logging.getLogger(__name__)
+
+def enable_verbose_logging():
+    logger.setLevel(logging.DEBUG)
 
 
 class XCallbackError(Exception):
@@ -149,7 +152,7 @@ class XCallClient(object):
         if activate_app:
             args += ['-activateApp', 'YES']
 
-        logger.debug('XCALL_PATH: "%s"' % XCALL_PATH)
+        logger.info('Making bash call: "%s"' % ' '.join(args))
 
 
         p = subprocess.Popen(

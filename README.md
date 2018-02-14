@@ -74,6 +74,13 @@ or just:
 >>> ulysses_client('get-version')
 ```
 
+## Logging
+As logger output just goes directly to the terminal, it is disabled by default. To enable more verbose logging use:
+```python
+>>> import xcall
+>>> xcall.enable_verbose_logging()
+```
+
 ## On thread/process safety
 Call to this module are __probably__ not thread/process safe. An attempt is made
 to ensure that `xcall` is not already running, but there is 20-30ms window in which
